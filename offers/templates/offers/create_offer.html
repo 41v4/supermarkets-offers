@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load tailwind_filters %}
+
+{% block content %}
+    <a href="{% url 'offers:offer-list' %}">Go back to all offers</a>
+    <hr />
+    <h1>Create an offer:</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit">Submit</button>
+    </form>
+{% endblock %}

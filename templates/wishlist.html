@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %} 
+
+{% block content %}
+    <section class="text-gray-600 body-font">
+    <button onclick="myFunction()">Click me!</button>
+    <div class="container px-5 py-24 mx-auto">
+        <div class="flex flex-col text-center w-full mb-20">
+        <h1 class="sm:text-4xl text-3xl font-medium title-font mb-2 text-gray-900">Your Wishlist</h1>
+        <p class="lg:w-2/3 mx-auto leading-relaxed text-base">Create, view, update, delete your wishlists here.</p>
+        </div>
+        <button class="flex mx-auto text-white bg-indigo-500 border-0 mb-5 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">
+            <a href="{% url 'wishlist-create' %}">Add new</a>
+        </button>
+        <div class="lg:w-2/3 w-full mx-auto overflow-auto">
+            <form action="{% url 'wishlist-multi-action' %}" method="post">
+                {% csrf_token %}
+                <table class="table-auto w-full text-left whitespace-no-wrap">
+                    <thead>
+                    <tr>
+                        <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100 rounded-tl rounded-bl">Name</th>
+                        <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Super market(s)</th>
+                        <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Date added</th>
+                        <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Is active</th>
+                        <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">
+                            <input name="select-all" type="checkbox" onclick="toggle(this);">
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in object_list %}
+                            <tr>
+                                <td class="px-4 py-3"><a class="text-indigo-500 hover:underline inline-flex items-center md:mb-2 lg:mb-0" href="{% url 'wishlist-item-detail' item.pk %}">{{ item.product_name }}</a></td>
+                                <td class="px-4 py-3">{{ item.beautify_supermarkets }}</td>
+                                <td class="px-4 py-3">{{ item.created_on }}</td>
+                                <td class="px-4 py-3">{{ item.is_active }}</td>
+                                <td class="px-4 py-3 w-10">
+                                    <input value="{{item.id}}" name="wishlist-item" type="checkbox">
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="flex px-4 py-3">
+                    <div class="ml-auto mr-2">Action:</div>
+                    <select class="mr-2 rounded border appearance-none border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 text-base pl-3 pr-10" name="multi-action-val">
+                        <option value="">-</option>
+                        <option value="enable">Enable selected</option>
+                        <option value="disable">Disable selected</option>
+                        <option value="delete">Delete selected</option>
+                    </select>
+                    <button class="text-white bg-indigo-500 border-0 px-4 focus:outline-none hover:bg-indigo-600 rounded" type="submit">Go</button>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    </section>
+{% endblock %}

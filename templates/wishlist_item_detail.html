@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="max-w-xl mx-auto">
+        <a class="hover:text-blue-500 mt-5" href="{% url 'wishlist' %}">Go back to wishlist</a>
+        <h1 class="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900"> {{wishlist_item.product_name}} </h1>
+        <div class="flex border-t border-gray-200 py-2">
+            <span class="text-gray-500">Supermarkets:</span>
+            <span class="ml-auto text-gray-900">{{ wishlist_item.beautify_supermarkets }}</span>
+        </div>
+        <div class="flex border-t border-gray-200 py-2">
+            <span class="text-gray-500">Created on:</span>
+            <span class="ml-auto text-gray-900">{{ wishlist_item.created_on }}</span>
+        </div>
+        <div class="flex border-t border-gray-200 py-2">
+            <span class="text-gray-500">Is active:</span>
+            <span class="ml-auto text-gray-900">{{ wishlist_item.is_active }}</span>
+        </div>
+        <div class="flex justify-center">
+            <button class="text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">
+                <a href="{% url 'wishlist-item-update' wishlist_item.pk %}">Update</a>
+            </button>
+            <button class="text-white bg-indigo-500 border-0 ml-2 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">
+                <a href="{% url 'wishlist-item-delete' wishlist_item.pk %}">Delete</a>
+            </button>
+        </div>
+    </div>
+{% endblock %}

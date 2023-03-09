@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <a href="{% url 'wishlist' %}">Go back to your wishlist</a>
+    <hr />
+    <h1>Are you sure you want to delete this wishlist?</h1>
+    <p>Wishlist name: {{ wishlist_item.product_name }}</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
+    </form>
+{% endblock %}
