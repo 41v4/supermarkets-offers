@@ -46,18 +46,11 @@
                         </ul>
                     </div>
         </div>
-        <div class="flex flex-wrap -m-4 pt-1 mt-6">
-            {% for offer in object_list %}
-            <div class="lg:w-1/4 md:w-1/2 p-4 w-full">
-                <a href="{% url 'offers:offer-detail' offer.pk %}" class="block relative h-48 rounded overflow-hidden">
-                    <img alt="ecommerce" class="object-cover object-center w-full h-full block" src="https://dummyimage.com/420x260">
-                </a>
-                <div class="mt-4">
-                    <h2 class="text-gray-900 title-font text-lg font-medium"><a href="{% url 'offers:offer-detail' offer.pk %}">{{ offer.product_name }}</a></h2>
-                    <p class="mt-1">{{ offer.product_price }}</p>
-                </div>
+            <div class="flex flex-wrap -m-4 pt-1 mt-6">
+                {% include 'offers/offers_list_ajax.html' %}
             </div>
-            {% endfor %}
+            <div id="pagination" class='flex justify-center mt-4'>
+                {% include 'offers/pagination.html' %}
             </div>
         </div>
     </div>

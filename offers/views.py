@@ -3,6 +3,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render, reverse
 from django.views import generic
+from django.core.paginator import Paginator
+from django.template.loader import render_to_string
 
 from .forms import (CustomUserCreationForm, OfferForm, OfferModelForm,
                     WishlistItemModelForm)
@@ -65,7 +67,9 @@ class WishlistItemDetail(LoginRequiredMixin, generic.DetailView):
 
 class OfferListView(generic.ListView):
     template_name = "offers/offers_list.html"
-    queryset = Offer.objects.filter(is_active=True)
+    model = Offer
+    context_object_name = 'offer'
+    paginate_by = 8  # Show 8 products per page
 
 
 class OfferDetailView(generic.DeleteView):
