@@ -71,6 +71,19 @@ class OfferListView(generic.ListView):
     context_object_name = 'offer'
     paginate_by = 8  # Show 8 products per page
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        self.selected_supermarkets = [int(i) for i in self.request.GET.getlist('sm')]
+        if self.selected_supermarkets:
+            queryset = queryset.filter(supermarket__in=self.selected_supermarkets)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['supermarkets'] = Supermarket.objects.all()
+        context['selected_supermarkets'] = self.selected_supermarkets
+        return context
+
 
 class OfferDetailView(generic.DeleteView):
     template_name = "offers/offer_detail.html"
