@@ -1,12 +1,11 @@
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import redirect, render, reverse
-from django.views import generic
 from django.core.paginator import Paginator
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import redirect, render, reverse
 from django.template.loader import render_to_string
+from django.views import generic
 
-from .forms import (CustomUserCreationForm, OfferForm, OfferModelForm,
+from .forms import (CustomUserCreationForm, OfferModelForm,
                     WishlistItemModelForm)
 from .models import Offer, Supermarket, User, WishlistItem
 
@@ -69,20 +68,39 @@ class OfferListView(generic.ListView):
     template_name = "offers/offers_list.html"
     model = Offer
     context_object_name = 'offer'
-    paginate_by = 8  # Show 8 products per page
+    paginate_by = 2  # Show 8 products per page
 
     def get_queryset(self):
         queryset = super().get_queryset()
         self.selected_supermarkets = [int(i) for i in self.request.GET.getlist('sm')]
         if self.selected_supermarkets:
             queryset = queryset.filter(supermarket__in=self.selected_supermarkets)
+        self.offer_search = self.request.GET.get("offer_search")
+        if self.offer_search:
+            queryset = queryset.filter(product_name__icontains=self.offer_search)
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['supermarkets'] = Supermarket.objects.all()
         context['selected_supermarkets'] = self.selected_supermarkets
+        context['offer_search'] = self.offer_search
         return context
+    
+    def get(self, request, *args, **kwargs):
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        if is_ajax:
+            # Process AJAX request
+            paginator = Paginator(self.get_queryset(), self.paginate_by)
+            page_number = request.GET.get("page", 1)
+            page_obj = paginator.get_page(page_number)
+            return JsonResponse({
+                'html_from_view_offer_list': render_to_string('offers/offers_list_ajax.html', {'object_list': page_obj}),
+                'html_from_view_pagination': render_to_string('offers/pagination.html', {'page_obj': page_obj, 'paginator': paginator, 'selected_supermarkets': self.selected_supermarkets, 'request': request}),
+            })
+        else:
+            # Render regular HTML response
+            return super().get(request, *args, **kwargs)
 
 
 class OfferDetailView(generic.DeleteView):

@@ -10,7 +10,7 @@
 </div>
 <div class="flex w-full mb-5 justify-center items-end">
     <div class="relative mr-4 xl:w-1/3 md:w-1/3 w-1/2">
-        <input type="text" id="hero-field" name="hero-field" class="w-full bg-gray-100 rounded border bg-opacity-50 border-gray-300 focus:ring-2 focus:ring-indigo-200 focus:bg-transparent focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" placeholder="Type product name...">
+        <input type="text" id="offer-input" name="hero-field" class="w-full bg-gray-100 rounded border bg-opacity-50 border-gray-300 focus:ring-2 focus:ring-indigo-200 focus:bg-transparent focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" placeholder="Type product name..." value="{% if offer_search %}{{ offer_search }}{% endif %}">
     </div>
     <button class="inline-flex text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-lg">Search</button>
 </div>
@@ -19,28 +19,30 @@
 
 <section class="text-gray-600 body-font">
     <div class="container px-5 py-5 mx-auto">
-        <div x-data="{dropdownMenu: false}" class="absolute z-10">
-                <button @click="dropdownMenu = ! dropdownMenu" id="dropdownCheckboxButton" data-dropdown-toggle="dropdownDefaultCheckbox" class="text-white bg-indigo-500 hover:bg-indigo-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button">Supermarkets: <svg class="ml-2 w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
-
-                    <!-- Dropdown menu -->
-                    <form method="get" id="filter-form">
-                        <div x-show="dropdownMenu" @click.away="dropdownMenu = false" id="dropdown" class="z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 block">
-                            <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownCheckboxButton">
-                                {% for supermarket in supermarkets %}
-                                <li>
-                                    <div class="flex items-center">
-                                        <input id="checkbox-item-{{ supermarket.id }}" type="checkbox" name="sm" value="{{ supermarket.id }}" class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" {% if supermarket.id in selected_supermarkets %}checked{% endif %}>
-                                        <label for="checkbox-item-{{ supermarket.id }}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{ supermarket }}</label>
-                                    </div>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                            <!-- <button type="submit" id="filter-btn">Filter</button> -->
-                            <button type="submit" id="filter-btn" class="inline-flex text-white bg-indigo-500 border-0 py-1 px-6 focus:outline-none hover:bg-indigo-600 rounded text-md">Filter</button>
-                        </div>
-                    </form>                    
-        </div>
-            <div class="flex flex-wrap -m-4 pt-1 mt-6">
+        <div x-data="{ dropdownMenu: false, filterApplied: false }" class="absolute z-10">
+            <button @click="dropdownMenu = !dropdownMenu" id="dropdownCheckboxButton" data-dropdown-toggle="dropdownDefaultCheckbox" class="text-white bg-indigo-500 hover:bg-indigo-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button">
+              Supermarkets: <svg class="ml-2 w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+          
+            <!-- Dropdown menu -->
+            <div id="filter-form">
+              <div x-show="dropdownMenu" @click.away="dropdownMenu = false" id="dropdown" class="z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 block">
+                <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownCheckboxButton">
+                  {% for supermarket in supermarkets %}
+                  <li>
+                    <div class="flex items-center">
+                      <input id="checkbox-item-{{ supermarket.id }}" type="checkbox" name="sm" value="{{ supermarket.id }}" class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" {% if supermarket.id in selected_supermarkets %}checked{% endif %}>
+                      <label for="checkbox-item-{{ supermarket.id }}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{ supermarket }}</label>
+                    </div>
+                  </li>
+                  {% endfor %}
+                </ul>
+                <button @click="dropdownMenu = false; filterApplied = true;" type="submit" id="filter-btn" class="inline-flex text-white bg-indigo-500 border-0 py-1 px-6 focus:outline-none hover:bg-indigo-600 rounded text-md">Filter</button>
+              </div>
+            </div>
+          </div>
+          
+            <div id="offers_list_ajax" class="flex flex-wrap -m-4 pt-1 mt-6">
                 {% include 'offers/offers_list_ajax.html' %}
             </div>
             <div id="pagination" class='flex justify-center mt-4'>
