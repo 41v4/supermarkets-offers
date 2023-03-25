@@ -103,10 +103,46 @@ class OfferListView(generic.ListView):
             return super().get(request, *args, **kwargs)
 
 
-class OfferDetailView(generic.DeleteView):
-    template_name = "offers/offer_detail.html"
+class OfferDetailView(generic.DetailView):
+    template_name = "offers/offer_details.html"
     queryset = Offer.objects.all()
     context_object_name = "offer"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        tab_clicked = self.request.GET.get("tab_clicked")
+        offer_name = self.request.GET.get("offer_name")
+        
+        if tab_clicked == "exp":
+            if offer_name:
+                queryset = queryset.filter(product_name__icontains=offer_name, is_active=False)
+        
+        return queryset
+
+
+    def get(self, request, *args, **kwargs):
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        if is_ajax:
+            queryset = self.get_queryset()
+            tab_clicked = request.GET.get("tab_clicked", 1)
+            if tab_clicked == "desc":
+                html_template_name = "offers/offer_details_inner.html"
+                offer = self.get_object()
+                return JsonResponse({
+                    'html_from_offer_detail_view': render_to_string(html_template_name, {'offer': offer}),
+                })
+            elif tab_clicked == "exp":
+                html_template_name = "offers/exp_offers.html"
+                return JsonResponse({
+                    'html_from_offer_detail_view': render_to_string(html_template_name, {'exp_offers': queryset}),
+                })
+            else:
+                raise Exception("Unidentified tab clicked.")
+        else:
+            # Render regular HTML response
+            self.object = self.get_object()
+            context = self.get_context_data(object=self.object)
+            return self.render_to_response(context)
 
 
 class OfferCreateView(generic.CreateView):
