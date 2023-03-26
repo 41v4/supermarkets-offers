@@ -6,21 +6,28 @@ from .models import Supermarket, Offer, WishlistItem
 User = get_user_model()
 
 
+class DateInput(forms.DateInput):
+    input_type = "date"
+
+
 class OfferModelForm(forms.ModelForm):
     class Meta:
         model = Offer
         fields = (
+            'is_active',
+            'valid_until',
             'product_name',
             'product_price',
             'product_discount',
+            'product_descr',
             'product_addt_info',
             'product_img_orig',
+            'product_img_local',
             'supermarket'
         )
-
-
-class DateInput(forms.DateInput):
-    input_type = "date"
+        widgets = {
+            'valid_until': DateInput()
+        }
 
 
 class WishlistItemModelForm(forms.ModelForm):

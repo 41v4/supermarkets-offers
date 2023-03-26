@@ -38,12 +38,14 @@
 	{% endif %}
 	<div class="inline-flex ml-auto">
 		{% if request.user.is_staff %}
-		<button
-			class="text-white bg-indigo-500 border-0 mr-1 mb-5 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">
-			<a href="{% url 'offers:offer-update' offer.pk %}">Edit</a>
-		</button>
+		<form action="{% url 'offers:offer-update' offer.pk %}" method="get", value="hello">
+			{% csrf_token %}
+			<button
+				class="text-white bg-indigo-500 border-0 mr-1 mb-5 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">
+				Edit
+			</button>
+		</form>
 		{% endif %}
-
 		<form action="{% url 'wishlist-create' %}" method="post" , value="hello">
 			{% csrf_token %}
 			<button

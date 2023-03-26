@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, reverse
@@ -238,6 +239,7 @@ class OfferUpdateView(LoginRequiredMixin, generic.UpdateView):
     form_class = OfferModelForm
 
     def get_success_url(self):
+        messages.success(self.request, "Offer updated successfully")
         offer_pk = self.get_object().pk
         return reverse("offers:offer-detail", kwargs={'pk': offer_pk})
 
