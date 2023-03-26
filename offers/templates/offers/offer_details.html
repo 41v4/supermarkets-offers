@@ -4,7 +4,7 @@
 {% block content %}
 <script src="{% static 'js/exp_offers.js' %}"></script>
 <section class="text-gray-600 body-font overflow-hidden">
-    <div class="container px-5 py-24 mx-auto">
+    <div class="container px-5 py-24 mx-auto" id="offer-details-container">
         <div class="lg:w-4/5 mx-auto flex flex-wrap">
             <div class="lg:w-1/2 w-full lg:pr-10 lg:py-6 mb-6 lg:mb-0">
                 <h2 class="text-sm title-font text-gray-500 tracking-widest"><a href="{% url 'offers:offer-list' %}">Go
@@ -21,8 +21,20 @@
                 </div>
                 <div id="offer-details-section">{% include 'offers/offer_details_inner.html' %}</div>
             </div>
-            <img alt="ecommerce" class="lg:w-1/2 w-full lg:h-auto h-64 object-cover object-center rounded"
-                src="https://dummyimage.com/400x400">
+            {% if offer.product_img_local %}
+            <div class="lg:w-1/2 w-full lg:h-auto h-64 object-cover object-center rounded"
+                style="height: 400px;">
+                <img alt="ecommerce" class="w-full h-full object-cover object-center rounded"
+                    src="{{ offer.product_img_local }}">
+            </div>
+            {% else %}
+            <div class="lg:w-1/2 w-full lg:h-auto h-64 object-cover object-center rounded"
+                style="height: 400px;">
+                <img alt="ecommerce" class="w-full h-full object-cover object-center rounded"
+                    src="https://dummyimage.com/400x400">
+            </div>
+            {% endif %}
         </div>
+    </div>
 </section>
 {% endblock %}
