@@ -1,0 +1,68 @@
+{% load static %}
+<script src="{% static 'js/exp_offers_modal.js' %}"></script>
+
+<div x-data="app()">
+    {% if exp_offers %}
+    <table class="table-auto w-full">
+        <thead>
+            <tr>
+                <th
+                    class="border-b dark:border-slate-600 font-medium pr-4 pt-0 pb-3 text-slate-400 dark:text-slate-200 text-left">
+                    Offer name:</th>
+                <th
+                    class="border-b dark:border-slate-600 font-medium pr-4 pt-0 pb-3 text-slate-400 dark:text-slate-200 text-left">
+                    Price:</th>
+                <th
+                    class="border-b dark:border-slate-600 font-medium pr-4 pt-0 pb-3 text-slate-400 dark:text-slate-200 text-left">
+                    Expired date:</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for offer in exp_offers %}
+            <tr>
+                <td class="border-b border-slate-100 dark:border-slate-700 pr-4 text-slate-500 underline dark:text-slate-400"
+                    x-on:click="currentOffer = {title: '{{ offer.product_name }}', price: '{{ offer.product_price }}', discount: '{{ offer.product_discount }}', supermarket: '{{ offer.supermarket }}', publishedDate: '{{ offer.created_on|date:"Y-m-d" }}', expiredDate: '{{ offer.deactivated_on|date:"Y-m-d" }}', addtInfo: '{{ offer.product_addt_info}}', productImg: '{{ offer.product_img_orig }}'}; showModal = true;">
+                    {{ offer.product_name }}</td>
+                <td class="border-b border-slate-100 dark:border-slate-700 pr-4 text-slate-500 dark:text-slate-400">
+                    {{ offer.product_price }}</td>
+                <td class="border-b border-slate-100 dark:border-slate-700 pr-4 text-slate-500 dark:text-slate-400">
+                    {{ offer.deactivated_on|date:'Y-m-d' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="fixed z-10 inset-0 overflow-y-auto flex items-center justify-center" x-show="showModal" x-cloak>
+        <div class="fixed inset-0 bg-black opacity-30" x-on:click="showModal = false"></div>
+        <div class="relative bg-white rounded-lg shadow-lg max-w-xl w-full mx-auto mt-10">
+            <button class="absolute top-0 right-0 m-4 text-gray-700 hover:text-gray-900" x-on:click="showModal = false">
+                <svg class="h-6 w-6 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path
+                        d="M14.83 12l5.59-5.59c.39-.39.39-1.02 0-1.41l-.18-.18c-.39-.39-1.02-.39-1.41 0L12 10.83l-5.59-5.59c-.39-.39-1.02-.39-1.41 0l-.18.18c-.39.39-.39 1.02 0 1.41L9.17 12l-5.59 5.59c-.39.39-.39 1.02 0 1.41l.18.18c.39.39 1.02.39 1.41 0L12 13.17l5.59 5.59c.39.39 1.02.39 1.41 0l.18-.18c.39-.39.39-1.02 0-1.41L14.83 12z" />
+                </svg>
+            </button>
+            <div class="flex flex-col">
+                <h2 class="text-xl font-bold text-gray-800 mb-0 p-6" x-text="currentOffer.title"></h2>
+                <div class="flex">
+                    <div class="w-1/2 p-6">
+                        <p class="text-gray-700 mb-2" x-text="'Price: ' + (currentOffer.price === 'None' ? '-' : currentOffer.price + '€')"></p>
+                        <p class="text-gray-700 mb-2" x-text="'Discount: ' + (currentOffer.discount === 'None' ? '-' : '-' + currentOffer.discount + '%')"></p>
+                        <p class="text-gray-700 mb-2" x-text="'Supermarket: ' + currentOffer.supermarket"></p>
+                        <p class="text-gray-700 mb-2" x-text="'Published date: ' + currentOffer.publishedDate"></p>
+                        <p class="text-gray-700 mb-2" x-text="'Expired date: ' + currentOffer.expiredDate"></p>
+                        <p class="text-gray-700 mb-2"
+                            x-text="'Additional info.: ' + (currentOffer.addtInfo === 'None' ? '-' : currentOffer.addtInfo)">
+                        </p>
+                    </div>
+                    <div class="w-1/2 p-6 flex justify-center items-center">
+                        <img class="h-48 w-48 object-cover" x-bind:src="currentOffer.productImg"
+                            x-bind:alt="currentOffer.title">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p>Unfortunately no similar previously expired offers were found.</p>
+    {% endif %}
+</div>
