@@ -9,15 +9,14 @@
         <div class="w-1/2">
             <a class="hover:text-blue-500 mt-5" href="{% url 'wishlist' %}">Go back to your wishlist</a>
             <hr />
-            <h2 class="text-xm mt-5 title-font text-gray-900">Updating wishlist item:</h2>
-            <h1 class="text-gray-900 text-3xl title-font font-medium mb-5">{{ wishlist_item.product_name }}</h1>
+            <h1 class="text-gray-900 text-3xl title-font font-medium mb-5">Create a wishlist item:</h1>
             <form id="wishlist-form-id" method="post" class="mb-8">
                 {% csrf_token %}
                 {{ form|crispy }}
                 <input type="hidden" name="selected_values" id="selected-values">
                 <button type="submit"
                     class="w-full text-white bg-indigo-500 border-0 mb-5 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">
-                    Update
+                    Submit
                 </button>
             </form>
         </div>

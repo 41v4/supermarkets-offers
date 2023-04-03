@@ -31,21 +31,22 @@ class OfferModelForm(forms.ModelForm):
 
 
 class WishlistItemModelForm(forms.ModelForm):
-    supermarket_choices = [(obj.name, obj.get_name_display()) for obj in Supermarket.objects.all()]
-    supermarkets = forms.MultipleChoiceField(choices=supermarket_choices, required=False, widget=forms.CheckboxSelectMultiple())
+    supermarket_choices = [(obj.id, obj.get_name_display()) for obj in Supermarket.objects.all()]
+    supermarkets = forms.MultipleChoiceField(choices=supermarket_choices, widget=forms.CheckboxSelectMultiple(), error_messages={'required': 'Please select at least one supermarket.'})
+
     class Meta:
         model = WishlistItem
         fields = (
+            'is_active',
             'product_name',
             'product_name_exact',
             'product_brand',
             'product_brand_exact',
-            'is_active',
             'valid_until',
             'supermarkets'
         )
         widgets = {
-            'valid_until': DateInput()
+            'valid_until': DateInput(),
         }
 
 
