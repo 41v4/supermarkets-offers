@@ -70,15 +70,14 @@ class WishlistItem(models.Model):
     valid_until = models.DateField(blank=True, null=True)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(blank=True, null=True) 
-    supermarkets = models.CharField(max_length=50, blank=True, null=True)
+    supermarkets = models.ManyToManyField(Supermarket)
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def beautify_supermarkets(self):
-        if not self.supermarkets:
+        if not self.supermarkets.exists():
             return "-"
-        supermarkets_list = self.supermarkets.strip('[]').replace("'", "").split(',')
-        supermarkets_beautified = ", ".join([i.strip().capitalize() for i in supermarkets_list])
+        supermarkets_beautified = ", ".join([s.name.capitalize() for s in self.supermarkets.all()])
         return supermarkets_beautified
 
     def __str__(self):

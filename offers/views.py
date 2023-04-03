@@ -5,6 +5,9 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, reverse
 from django.template.loader import render_to_string
 from django.views import generic
+from django.contrib.messages import get_messages
+from django.contrib.messages import constants as message_constants
+import ast
 
 from .forms import (CustomUserCreationForm, OfferModelForm,
                     WishlistItemModelForm)
@@ -161,65 +164,96 @@ class OfferCreateView(generic.CreateView):
 
 
 class WishlistItemCreateView(LoginRequiredMixin, generic.CreateView):
-    template_name = "create_wishlist_item.html"
+    template_name = "wishlist_item_create.html"
     form_class = WishlistItemModelForm
+    model = Offer
 
-    # def get(self, request):
-    #     if request.method == 'GET':
-    #         form = self.form_class(initial={"product_name": "GET"})
-    #     elif request.method == 'POST':
-    #         form = self.form_class(initial={"product_name": "POST"})
-    #     return render(request, self.template_name, {"form": form})
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        product_name = self.request.GET.get("product_name")
+        product_brand = self.request.GET.get("product_brand")
+        supermarkets = self.request.GET.getlist('selected_values')
+        is_product_name_empty = not bool(product_name)  # check if product_name is empty or None
+        is_supermarkets_empty = not bool(supermarkets) # check if supermarkets is empty or None
+
+        self.custom_messsages = []
+        if is_product_name_empty:
+            messages.add_message(self.request, messages.WARNING, "Product name cannot be empty.")
+
+        if is_supermarkets_empty:
+            messages.add_message(self.request, messages.WARNING, "Supermarkets cannot be empty.")
+
+        if any([is_product_name_empty, is_supermarkets_empty]):
+            print("Returning NONE")
+            return None  # returning None will not render the template and instead trigger the else block of the get() method
+        
+        if product_name and supermarkets and not product_brand:
+            queryset = queryset.filter(
+                product_name__istartswith=product_name,
+                supermarket_id__in=[int(i) for i in supermarkets]
+            )
+        # elif product_name and supermarkets and product_brand: # Implement later
+        #     queryset = queryset.filter(
+        #         product_name__istartswith=product_name,
+        #         product_brand__istartswith=product_brand,
+        #         supermarket_id__in=[int(i) for i in supermarkets]
+        #     )
+        
+        return queryset
+
+    def get(self, request, *args, **kwargs):
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        if is_ajax:
+            queryset = self.get_queryset()
+            if queryset:
+                html_template_name = "wishlist_tbody.html"
+                return JsonResponse({
+                    'html_from_wishlist_item_create_view': render_to_string(html_template_name, {'offers': queryset}),
+                })
+            else:
+                html_template_name = "wishlist_item_errors.html"
+                msgs_storage = get_messages(request)
+                warning_msg_exist = False
+                for msg in msgs_storage:
+                    if msg.level == message_constants.WARNING:
+                        warning_msg_exist = True
+                if not warning_msg_exist:
+                    messages.add_message(request, messages.INFO, "No results. Try changing product name and/or supermarket(s).")
+                    msgs_storage = get_messages(request)
+                return JsonResponse({
+                    'custom_msgs': render_to_string(html_template_name, {'messages': msgs_storage}),
+                })
+        else:
+            # Render regular HTML response
+            self.object = None
+            context = self.get_context_data(object=self.object)
+            return self.render_to_response(context)
 
     def post(self, request):
         initial_prepop = {}
         product_name_prepop = request.POST.get('product_name_prepop')
         supermarket_prepop = request.POST.get('supermarket_prepop')
-        
+
         if product_name_prepop:
-            print("PRODUCT NAME PREPOP")
             initial_prepop["product_name"] = product_name_prepop
         if supermarket_prepop:
             initial_prepop["supermarkets"] = supermarket_prepop
 
-        # print(initial_prepop)
-
         if initial_prepop:
-            print("INITIAL PREPOP")
             form = self.form_class(initial=initial_prepop)
-            # form.fields["supermarkets"].initial = "lidl"
-            # print(dir(form.fields["supermarkets"]))
-            # print(form.fields["supermarkets"].initial)
-            # print(dir(form.fields["supermarket"].choices))
         else:
             form = self.form_class(request.POST)
-            print("UPDATE")
-            # form.fields["supermarkets"].initial = "maxima"
-
-        data = request.POST.dict()
-        sm = data.get("supermarkets")
-        # print(sm)
 
         if form.is_valid():
             offer_obj = form.save(commit=False)
             offer_obj.user = self.request.user
             offer_obj.save()
+            form.save_m2m()  # save many-to-many relationship
             return redirect("wishlist")
         else:
             print("INVALID FORM!")
-        
-        return render(request, self.template_name, {"form": form})
-        # if form.is_valid():
-        #     form.save()
-        # return redirect("main:home")
 
-    # def get_initial(self):
-    #     """
-    #     Returns the initial data to use for forms on this view.
-    #     """
-    #     initial = super().get_initial()
-    #     initial["product_name"] = "Product name test"
-    #     return initial
+        return render(request, self.template_name, {"form": form})
 
     def form_valid(self, form: form_class) -> HttpResponse:
         offer_obj = form.save(commit=False)
@@ -257,6 +291,81 @@ class WishlistItemUpdateView(LoginRequiredMixin, generic.UpdateView):
     queryset = WishlistItem.objects.all()
     context_object_name = "wishlist_item"
     form_class = WishlistItemModelForm
+
+    def get_initial(self):
+        initial = super().get_initial()
+        # Get the WishlistItem instance being edited
+        wishlist_item = self.get_object()
+        # Get the IDs of the supermarkets associated with the WishlistItem
+        supermarket_ids = wishlist_item.supermarkets.values_list('id', flat=True)
+        # Set the initial value of the supermarkets field to the list of IDs
+        initial['supermarkets'] = supermarket_ids
+        return initial
+
+    def get_queryset(self, is_ajax=False):
+        if is_ajax:
+            queryset = Offer.objects.all()
+            product_name = self.request.GET.get("product_name")
+            product_brand = self.request.GET.get("product_brand")
+            supermarkets = self.request.GET.getlist('selected_values')
+            is_product_name_empty = not bool(product_name)  # check if product_name is empty or None
+            is_supermarkets_empty = not bool(supermarkets) # check if supermarkets is empty or None
+
+            self.custom_messsages = []
+            if is_product_name_empty:
+                messages.add_message(self.request, messages.WARNING, "Product name cannot be empty.")
+
+            if is_supermarkets_empty:
+                messages.add_message(self.request, messages.WARNING, "Supermarkets cannot be empty.")
+
+            if any([is_product_name_empty, is_supermarkets_empty]):
+                print("RETURNING NONE")
+                return None  # returning None will not render the template and instead trigger the else block of the get() method
+            
+            if product_name and supermarkets and not product_brand:
+                print("FILTERING!!!")
+                queryset = queryset.filter(
+                    product_name__istartswith=product_name,
+                    supermarket_id__in=[int(i) for i in supermarkets]
+                )
+            # elif product_name and supermarkets and product_brand: # Implement later
+            #     queryset = queryset.filter(
+            #         product_name__istartswith=product_name,
+            #         product_brand__istartswith=product_brand,
+            #         supermarket_id__in=[int(i) for i in supermarkets]
+            #     )
+            return queryset
+        
+        queryset = super().get_queryset()
+        return queryset
+
+    def get(self, request, *args, **kwargs):
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        if is_ajax:
+            queryset = self.get_queryset(is_ajax=True)
+            if queryset:
+                html_template_name = "wishlist_tbody.html"
+                return JsonResponse({
+                    'html_from_wishlist_item_create_view': render_to_string(html_template_name, {'offers': queryset}),
+                })
+            else:
+                html_template_name = "wishlist_item_errors.html"
+                msgs_storage = get_messages(request)
+                warning_msg_exist = False
+                for msg in msgs_storage:
+                    if msg.level == message_constants.WARNING:
+                        warning_msg_exist = True
+                if not warning_msg_exist:
+                    messages.add_message(request, messages.INFO, "No results. Try changing product name and/or supermarket(s).")
+                    msgs_storage = get_messages(request)
+                return JsonResponse({
+                    'custom_msgs': render_to_string(html_template_name, {'messages': msgs_storage}),
+                })
+        else:
+            # Render regular HTML response
+            self.object = self.get_object()
+            context = self.get_context_data(object=self.object)
+            return self.render_to_response(context)
 
     def get_success_url(self):
         return reverse("wishlist")
