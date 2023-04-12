@@ -3,7 +3,6 @@
 
 {% block content %}
 <section class="text-gray-600 body-font">
-    <button onclick="myFunction()">Click me!</button>
     <div class="container px-5 py-24 mx-auto">
         <div class="flex flex-col text-center w-full mb-20">
             <h1 class="sm:text-4xl text-3xl font-medium title-font mb-2 text-gray-900">Your Wishlist</h1>
@@ -44,8 +43,20 @@
                                     class="text-indigo-500 hover:underline inline-flex items-center md:mb-2 lg:mb-0"
                                     href="{% url 'wishlist-item-detail' item.pk %}">{{ item.product_name }}</a></td>
                             <td class="px-4 py-3">{{ item.beautify_supermarkets }}</td>
-                            <td class="px-4 py-3">{{ item.created_on }}</td>
-                            <td class="px-4 py-3">{{ item.is_active }}</td>
+                            <td class="px-4 py-3">{{ item.created_on|date:"Y-m-d, H:m" }}</td>
+                            <td class="px-4 py-3">
+                                {% if item.is_active %}
+                                <svg class="fill-current text-green-500 w-4 h-4" xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20">
+                                    <path d="M0 11l2-2 5 5L18 3l2 2L7 18z" /></svg>
+                                {% else %}
+                                <svg class="fill-current text-red-500 w-4 h-4" xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20">
+                                    <path
+                                        d="M17.707 16.293l-1.414 1.414L10 11.414l-6.293 6.293-1.414-1.414L8.586 10 2.293 3.707l1.414-1.414L10 8.586l6.293-6.293 1.414 1.414L11.414 10l6.293 6.293z" />
+                                </svg>
+                                {% endif %}
+                            </td>
                             <td class="px-4 py-3 w-10">
                                 <input value="{{item.id}}" name="wishlist-item" type="checkbox">
                             </td>
@@ -69,6 +80,9 @@
                     </button>
                 </div>
             </form>
+            <div id="pagination" class='flex justify-center mt-4'>
+                {% include 'wishlist_pagination.html' %}
+            </div>
         </div>
     </div>
 </section>

@@ -7,7 +7,6 @@ from django.template.loader import render_to_string
 from django.views import generic
 from django.contrib.messages import get_messages
 from django.contrib.messages import constants as message_constants
-import ast
 
 from .forms import (CustomUserCreationForm, OfferModelForm,
                     WishlistItemModelForm)
@@ -34,6 +33,7 @@ class HomePageView(generic.ListView):
 
 class WishlistView(LoginRequiredMixin, generic.ListView):
     template_name = "wishlist.html"
+    paginate_by = 2  # set the number of items per page
     
     def get_queryset(self):
         return WishlistItem.objects.filter(user=self.request.user).order_by("-created_on")
