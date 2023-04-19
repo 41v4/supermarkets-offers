@@ -38,22 +38,14 @@
 	{% endif %}
 	<div class="inline-flex ml-auto">
 		{% if request.user.is_staff %}
-		<form action="{% url 'offers:offer-update' offer.pk %}" method="get", value="hello">
-			{% csrf_token %}
-			<button
-				class="text-white bg-indigo-500 border-0 mr-1 mb-5 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">
-				Edit
-			</button>
-		</form>
+		<a href="{% url 'offers:offer-update' offer.pk %}"
+		class="text-white bg-indigo-500 border-0 mr-1 mb-5 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">
+			Edit
+		</a>
 		{% endif %}
-		<form action="{% url 'wishlist-create' %}" method="post" , value="hello">
-			{% csrf_token %}
-			<button
-				class="flex mx-auto text-white bg-indigo-500 border-0 mb-5 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">
-				Add to wishlist
-				<input type="hidden" name="product_name_prepop" value="{{ offer.product_name }}">
-				<input type="hidden" name="supermarket_prepop" value="{{ offer.supermarket_id }}">
-			</button>
-		</form>
+		<a href="{% url 'wishlist-create' %}?product_name_prepop={{ offer.product_name }}&supermarket_prepop={{ offer.supermarket_id }}"
+		class="flex mx-auto text-white bg-indigo-500 border-0 mb-5 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">
+			Add to wishlist
+		</a>
 	</div>
 </div>
