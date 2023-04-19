@@ -1,12 +1,12 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.messages import constants as message_constants
+from django.contrib.messages import get_messages
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, reverse
 from django.template.loader import render_to_string
 from django.views import generic
-from django.contrib.messages import get_messages
-from django.contrib.messages import constants as message_constants
 
 from .forms import (CustomUserCreationForm, OfferModelForm,
                     WishlistItemModelForm)
@@ -133,7 +133,7 @@ class OfferDetailView(generic.DetailView):
                 html_template_name = "offers/offer_details_inner.html"
                 offer = self.get_object()
                 return JsonResponse({
-                    'html_from_offer_detail_view': render_to_string(html_template_name, {'offer': offer}),
+                    'html_from_offer_detail_view': render_to_string(html_template_name, {'offer': offer, 'request': request}),
                 })
             elif tab_clicked == "exp":
                 html_template_name = "offers/exp_offers.html"
@@ -223,11 +223,27 @@ class WishlistItemCreateView(LoginRequiredMixin, generic.CreateView):
                 return JsonResponse({
                     'custom_msgs': render_to_string(html_template_name, {'messages': msgs_storage}),
                 })
-        else:
-            # Render regular HTML response
-            self.object = None
-            context = self.get_context_data(object=self.object)
-            return self.render_to_response(context)
+
+        initial_prepop = {}
+        product_name_prepop = request.GET.get('product_name_prepop')
+        supermarket_prepop = request.GET.get('supermarket_prepop')
+
+        if product_name_prepop:
+            initial_prepop["product_name"] = product_name_prepop
+
+        if supermarket_prepop:
+            initial_prepop["supermarkets"] = supermarket_prepop
+
+        form = self.form_class(initial=initial_prepop or request.GET)
+
+        if request.method == 'POST' and form.is_valid():
+            offer_obj = form.save(commit=False)
+            offer_obj.user = self.request.user
+            offer_obj.save()
+            form.save_m2m()
+            return redirect("wishlist")
+
+        return render(request, self.template_name, {"form": form})
 
     def post(self, request):
         initial_prepop = {}
