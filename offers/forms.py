@@ -31,8 +31,10 @@ class OfferModelForm(forms.ModelForm):
 
 
 class WishlistItemModelForm(forms.ModelForm):
-    supermarket_choices = [(obj.id, obj.get_name_display()) for obj in Supermarket.objects.all()]
-    supermarkets = forms.MultipleChoiceField(choices=supermarket_choices, widget=forms.CheckboxSelectMultiple(), error_messages={'required': 'Please select at least one supermarket.'})
+    supermarkets = forms.MultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple(),
+        error_messages={'required': 'Please select at least one supermarket.'}
+    )
 
     class Meta:
         model = WishlistItem
@@ -49,15 +51,11 @@ class WishlistItemModelForm(forms.ModelForm):
             'valid_until': DateInput(),
         }
 
-
-class OfferForm(forms.Form):
-    supermarkets = [(obj.name, obj.get_name_display()) for obj in Supermarket.objects.all()]
-    product_name = forms.CharField()
-    product_price = forms.FloatField(required=False)
-    product_discount = forms.IntegerField(required=False)
-    product_addt_info = forms.CharField(required=False)
-    product_img_orig = forms.CharField(required=False)
-    supermarket = forms.MultipleChoiceField(choices=supermarkets, widget=forms.CheckboxSelectMultiple())
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['supermarkets'].choices = [
+            (obj.id, obj.get_name_display()) for obj in Supermarket.objects.all()
+        ]
 
 
 class CustomUserCreationForm(UserCreationForm):
