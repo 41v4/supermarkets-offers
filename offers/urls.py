@@ -1,7 +1,7 @@
 from django.urls import path
 from django.contrib.admin.views.decorators import staff_member_required
 from .views import (OfferCreateView, OfferDeleteView, OfferDetailView,
-                    OfferListView, OfferUpdateView)
+                    OfferListView, OfferUpdateView, SubcategoryAPIView)
 
 app_name = "offers"
 
@@ -11,4 +11,5 @@ urlpatterns = [
    path('<int:pk>/update/', staff_member_required(OfferUpdateView.as_view()), name="offer-update"),
    path('<int:pk>/delete/', staff_member_required(OfferDeleteView.as_view()), name="offer-delete"),
    path('create/', staff_member_required(OfferCreateView.as_view()), name="offer-create"),
+   path('get_subcategories/', SubcategoryAPIView.as_view(), name='get_subcategories'),
 ]

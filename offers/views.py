@@ -6,11 +6,11 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, reverse
 from django.template.loader import render_to_string
-from django.views import generic
+from django.views import View, generic
 
 from .forms import (CustomUserCreationForm, OfferModelForm,
                     WishlistItemModelForm)
-from .models import Offer, Supermarket, User, WishlistItem
+from .models import Offer, Supermarket, User, WishlistItem, Category, Subcategory
 
 
 class SingupView(generic.CreateView):
@@ -394,3 +394,22 @@ class WishlistItemDeleteView(LoginRequiredMixin, generic.DeleteView):
 
     def get_success_url(self):
         return reverse("wishlist")
+
+
+class SubcategoryAPIView(View):
+    def get(self, request, *args, **kwargs):
+        category_id = request.GET.get('category_id')
+        if category_id:
+            try:
+                category = Category.objects.get(id=category_id)
+                subcategories = category.subcategory_set.all()
+                data = {
+                    'subcategories': [
+                        {'id': subcategory.id, 'name': subcategory.name}
+                        for subcategory in subcategories
+                    ]
+                }
+                return JsonResponse(data)
+            except Category.DoesNotExist:
+                pass
+        return JsonResponse({'subcategories': []})
