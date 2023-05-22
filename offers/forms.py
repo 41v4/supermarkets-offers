@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, UsernameField
-from .models import Supermarket, Offer, WishlistItem
+from .models import Supermarket, Offer, WishlistItem, Category, Subcategory
 
 User = get_user_model()
 
@@ -11,6 +11,9 @@ class DateInput(forms.DateInput):
 
 
 class OfferModelForm(forms.ModelForm):
+    category = forms.ModelChoiceField(queryset=Category.objects.all())
+    subcategory = forms.ModelChoiceField(queryset=Subcategory.objects.none())
+
     class Meta:
         model = Offer
         fields = (
@@ -23,11 +26,23 @@ class OfferModelForm(forms.ModelForm):
             'product_addt_info',
             'product_img_orig',
             'product_img_local',
+            'category',
+            'subcategory',
             'supermarket'
         )
         widgets = {
             'valid_until': DateInput()
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['subcategory'].queryset = self.instance.category.subcategory_set.all()
+
+        self.fields['category'].widget.attrs['onchange'] = 'load_subcategories(this.value);'
+
+    class Media:
+        js = ('js/subcategories.js',)  # Replace with the actual path to your JavaScript file
 
 
 class WishlistItemModelForm(forms.ModelForm):
