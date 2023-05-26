@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_tailwind',
     'django_extensions',
+    'django_tables2',
+    'django_filters',
 
     # local apps
     'offers',

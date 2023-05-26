@@ -12,7 +12,6 @@ class DateInput(forms.DateInput):
 
 class OfferModelForm(forms.ModelForm):
     category = forms.ModelChoiceField(queryset=Category.objects.all())
-    subcategory = forms.ModelChoiceField(queryset=Subcategory.objects.none())
 
     class Meta:
         model = Offer
@@ -36,13 +35,10 @@ class OfferModelForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance.pk:
-            self.fields['subcategory'].queryset = self.instance.category.subcategory_set.all()
-
-        self.fields['category'].widget.attrs['onchange'] = 'load_subcategories(this.value);'
+        self.fields['category'].widget.attrs['onchange'] = 'loadSubcategories(this.value);'
 
     class Media:
-        js = ('js/subcategories.js',)  # Replace with the actual path to your JavaScript file
+        js = ('js/offer_subcategories.js',)
 
 
 class WishlistItemModelForm(forms.ModelForm):

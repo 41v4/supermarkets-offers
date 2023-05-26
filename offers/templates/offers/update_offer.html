@@ -29,6 +29,9 @@
       {% endif %}
     </div>
   </div>
+  <script>
+    loadSubcategories({{ offer.category.id }}, {{ offer.subcategory.id }});
+  </script>
 </section>
 {% endblock %}
 

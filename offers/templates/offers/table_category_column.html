@@ -1,0 +1,12 @@
+{% load django_tables2 %}
+
+<select name="category" onchange="loadSubcategories(this)" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+    <option value="" selected>---------</option>
+    {% for category in table.category_choices %}
+        {% if category.0 == record.category.id %}
+            <option value="{{ category.0 }}" name="category" selected>{{ category.1 }}</option>
+        {% else %}
+            <option value="{{ category.0 }}">{{ category.1 }}</option>
+        {% endif %}
+    {% endfor %}
+</select>
