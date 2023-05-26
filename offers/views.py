@@ -1,16 +1,21 @@
+import json
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages import constants as message_constants
 from django.contrib.messages import get_messages
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render, reverse
+from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.template.loader import render_to_string
 from django.views import View, generic
+from django_tables2 import RequestConfig, SingleTableView
 
 from .forms import (CustomUserCreationForm, OfferModelForm,
                     WishlistItemModelForm)
-from .models import Offer, Supermarket, User, WishlistItem, Category, Subcategory
+from .models import (Category, Offer, Subcategory, Supermarket, User,
+                     WishlistItem)
+from .tables import ItemTable
 
 
 class SingupView(generic.CreateView):
@@ -413,3 +418,60 @@ class SubcategoryAPIView(View):
             except Category.DoesNotExist:
                 pass
         return JsonResponse({'subcategories': []})
+    
+
+class ItemListView(SingleTableView):
+    table_class = ItemTable
+    # queryset = Offer.objects.all()
+    queryset = Offer.objects.all().order_by('created_on')
+    template_name = "offers/table_main.html"
+    paginate_by = 50
+
+    def get_table(self, **kwargs):
+        table = super().get_table(**kwargs)
+        category_choices = [(category.id, category.name) for category in Category.objects.all()]
+        subcategory_choices = [(subcategory.id, subcategory.name, subcategory.category) for subcategory in Subcategory.objects.all()]
+        table.category_choices = category_choices
+        table.subcategory_choices = subcategory_choices
+        return table
+
+
+class SaveCategoriesAPIView(View):
+    def post(self, request, *args, **kwargs):
+        json_data = json.loads(request.body)
+
+        if json_data:
+            for item in json_data:
+                try:
+                    object_id = item.get("offerId")
+                    category_id = item.get("categoryId")
+                    subcategory_id = item.get("subcategoryId")
+
+                    # Retrieve the Offer object based on its ID
+                    offer_obj = get_object_or_404(Offer, id=object_id)
+
+                    # Update the Offer object using the additional data
+                    if category_id:
+                        category_obj = get_object_or_404(Category, id=category_id)
+                        offer_obj.category = category_obj
+                    else:
+                        offer_obj.category = None
+
+                    if subcategory_id:
+                        subcategory_obj = get_object_or_404(Subcategory, id=subcategory_id)
+                        offer_obj.subcategory = subcategory_obj
+                    else:
+                        offer_obj.subcategory = None
+
+                    offer_obj.save()
+
+                except (Offer.DoesNotExist, Category.DoesNotExist, Subcategory.DoesNotExist) as e:
+                    return JsonResponse({'error': str(e)}, status=400)
+
+            return JsonResponse({'message': 'Objects updated successfully'})
+
+        return JsonResponse({'error': 'No JSON data was received.'}, status=400)
+    
+    def get_success_url(self):
+        messages.success(self.request, "Categories updated successfully")
+        return reverse("offers:categories")
